@@ -11,8 +11,11 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 
 # Load data
 @st.cache_data
-def load_data():
-   data = pd.read_csv('kickstarter_2016.csv')
+csv_path = 'https://raw.githubusercontent.com/Vithy1998/Test2/refs/heads/main/kickstarter_2016.csv'
+
+@st.cache_data
+def load_full_data(file_path):
+    return pd.read_csv(file_path)
    data['Launched'] = pd.to_datetime(data['Launched'])
    data['Deadline'] = pd.to_datetime(data['Deadline'])
    return data
