@@ -12,15 +12,14 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 # Load data
 @st.cache_data
 def load_data():
-    data = pd.read_csv('kickstarter_2016.csv')
+    data = pd.read_csv('C:/Users/SugantV/data/kickstarter_2016.csv')
     data['Launched'] = pd.to_datetime(data['Launched'])
     data['Deadline'] = pd.to_datetime(data['Deadline'])
     return data
 
 df = load_data()
 
-#Q1
-# Target variable creation
+# Q1 Target variable creation
 df['success'] = df['State'].apply(lambda x: 1 if x.lower() == 'successful' else 0)
 
 # Feature engineering
@@ -29,7 +28,6 @@ df = df[df['Goal'] > 0].copy()
 
 df['log_goal'] = np.log(df['Goal'])
 
-#Q2
 # Replace any remaining inf or -inf with NaN
 df.replace([np.inf, -np.inf], np.nan, inplace=True)
 
@@ -42,7 +40,7 @@ df['name_length'] = df['Name'].apply(lambda x: len(str(x).split()))
 # Handle missing values in other features if any
 df.dropna(subset=['campaign_duration', 'name_length'], inplace=True)
 
-# Sidebar for classifier selection
+# Q2 Sidebar for classifier selection
 st.sidebar.header("Classifier Selection")
 classifier_name = st.sidebar.selectbox(
     'Select Classifier',
@@ -70,7 +68,7 @@ y = df['success']
 numeric_features = [feature for feature in selected_features if feature in ['log_goal', 'campaign_duration', 'name_length']]
 categorical_features = [feature for feature in selected_features if feature in ['Category', 'Country']]
 
-# Feature pre-processing pipeline
+# Q3 Feature pre-processing pipeline
 preprocessor = ColumnTransformer(
     transformers=[
         ('num', StandardScaler(), numeric_features),
@@ -86,7 +84,7 @@ classifiers = {
     'Gradient Boosting': GradientBoostingClassifier(random_state=42)
 }
 
-# Sidebar for model evaluation
+# Q3 Sidebar for model evaluation
 st.sidebar.header("Model Evaluation")
 cv_folds = st.sidebar.slider("Number of Cross-Validation Folds", min_value=3, max_value=10, value=5)
 
@@ -113,28 +111,28 @@ scoring = ['accuracy', 'precision', 'recall', 'f1']
 # Perform cross-validation
 cv_results = cross_validate(pipeline, X_train, y_train, cv=cv_folds, scoring=scoring)
 
-# Display cross-validation results
+# Display cross-validation results as percentages
 for metric in scoring:
-    mean_score = cv_results[f'test_{metric}'].mean()
-    st.write(f'**{metric.capitalize()}:** {mean_score:.2f}')
+    mean_score = cv_results[f'test_{metric}'].mean() * 100  # Convert to percentage
+    st.write(f'**{metric.capitalize()}:** {mean_score:.2f}%')
 
 # Train the model on the entire training set
 pipeline.fit(X_train, y_train)
 y_pred = pipeline.predict(X_test)
 
-# Model evaluation metrics
-accuracy = accuracy_score(y_test, y_pred)
-precision = precision_score(y_test, y_pred, zero_division=0)
-recall = recall_score(y_test, y_pred, zero_division=0)
-f1 = f1_score(y_test, y_pred, zero_division=0)
+# Model evaluation metrics (converted to percentages)
+accuracy = accuracy_score(y_test, y_pred) * 100
+precision = precision_score(y_test, y_pred, zero_division=0) * 100
+recall = recall_score(y_test, y_pred, zero_division=0) * 100
+f1 = f1_score(y_test, y_pred, zero_division=0) * 100
 
 st.write(f"### {classifier_name} Evaluation on Test Set")
-st.write(f'**Accuracy:** {accuracy:.2f}')
-st.write(f'**Precision:** {precision:.2f}')
-st.write(f'**Recall:** {recall:.2f}')
-st.write(f'**F1 Score:** {f1:.2f}')
+st.write(f'**Accuracy:** {accuracy:.2f}%')
+st.write(f'**Precision:** {precision:.2f}%')
+st.write(f'**Recall:** {recall:.2f}%')
+st.write(f'**F1 Score:** {f1:.2f}%')
 
-# Feature Impact Analysis (Optional)
+# Q4 Feature Impact Analysis (Optional)
 st.write("### Feature Impact Analysis")
 
 # Only perform if multiple features are selected
